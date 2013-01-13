@@ -1,0 +1,40 @@
+body {
+  margin: 0 auto;
+  background-color: #ddd;
+}
+
+* { margin: 0; padding: 0; }
+
+.wrap {
+  margin: 100px auto 0;
+  width: 600px;
+}
+
+.sliderWrapper button {
+  margin: .5em .5em .5em 0;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.sliderWrapper {
+  width: inherit;
+  overflow: hidden;
+}
+
+.sliderBase {
+  width: 10000px;
+  list-style: none;
+}
+
+.sliderBase > li {
+  float: left;
+  width: 600px;
+  height: 300px;
+  background-color: #bbb;
+}
+
+.sliderBase > li > div {
+  padding: 15px;
+}
+
+.sliderBase li:nth-child(odd) { background-color: #aaa;}
