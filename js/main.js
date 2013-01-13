@@ -4,14 +4,16 @@
     
     $.fn.mySlider = function(el, settings) {
 
+        var settings = s = $.extend({}, defaults, settings);
+        
         function Slider(el, settings) {
 
-            var settings = s = $.extend({}, defaults, settings);
+            
 
             // Cache DOM elements
             base          = this;
-            base.$el      = $(el).addClass('sliderBase').wrap('<div class="sliderWrapper"><div class="sliderFrame" /></div>');;
-            base.$wrapper = base.$el.parent().closest('div.sliderWrapper')
+            base.$el      = $(el).addClass('sliderBase').wrap('<div class="sliderWrapper"><div class="sliderFrame" /></div>');
+            base.$wrapper = base.$el.parent().closest('div.sliderWrapper');
             base.$frame   = base.$el.closest('div.sliderFrame');
 
             base.slide       = base.$el.children('li');
@@ -21,11 +23,11 @@
             base.count = 0;
             base.flag  = false;
 
-            if (s.autoPlay == true) base.slideStart() // Checks if autoPlay is true
-            if (s.enableControls == true) base.controls() // Checks if enableControls is true
-            if (s.enableNavigation == true) base.navigation() // Checks if enableNavigation is true 
+            if (s.autoPlay) base.slideStart() // Checks if autoPlay is true
+            if (s.enableControls === true) base.controls() // Checks if enableControls is true
+            if (s.enableNavigation === true) base.navigation() // Checks if enableNavigation is true 
 
-        }; // end fn
+        };
 
         Slider.prototype = {
 
@@ -51,7 +53,7 @@
 
             slidePause : function() {
 
-                if (base.paused == false) {
+                if (base.paused === false) {
                     clearInterval(base.go);
                     base.paused = true;
                 } else {
@@ -118,7 +120,7 @@
                     if (!base.flag) {
                         base.timeOut();
                         base.goBack();
-                        if (s.autoPlayLocked == false) base.resetTimer()
+                        if (s.autoPlayLocked === false) base.resetTimer()
                     } 
                 });
 
@@ -126,12 +128,12 @@
                     if (!base.flag) {
                         base.timeOut();
                         base.goForward();
-                        if (s.autoPlayLocked == false) base.resetTimer()
+                        if (s.autoPlayLocked === false) base.resetTimer()
                     }
                 });
 
                 // Pause button, easier the put all code here than make 3 different if statements
-                if (s.enablePause == true) {
+                if (s.enablePause === true) {
                     var $pauseBtn = $('<button>Pause</button>');
                     $pauseBtn.appendTo($controlsClass);
                     $pauseBtn.on('click', function() {
@@ -164,7 +166,7 @@
                         if (!base.flag) {
                             base.timeOut();
                             base.goToPage(index);
-                            if (s.autoPlayLocked == false) base.resetTimer()
+                            if (s.autoPlayLocked === false) base.resetTimer()
                         }    
                     });
                 });
@@ -176,19 +178,23 @@
     }
 
     var defaults = {
-
-        // Controls
-        enableControls      : true,         // If true, builds the control buttons (prev, next, pause).  
-        enablePause         : true,         // If true, pause btn will be turned on, does nothing if controls = false.
-        enableNavigation    : true,      // if false, navigation links will still be visible, but not clickable.
+        // Animation
+        slide              : true,
+        fade               : false,
 
         // Autoplay
         autoPlay            : true,     // If true, the slideshow will run on its own.
         autoPlayLocked      : false,    // If true, manually changing slides will not reset the slideshow timer.
+        // Need to split options for autoStart and coutinus scrolling
+
+         // Controls
+        enableControls      : true,         // If true, builds the control buttons (prev, next, pause).  
+        enablePause         : true,         // If true, pause btn will be turned on, does nothing if controls = false.
+        enableNavigation    : true,      // if false, navigation links will still be visible, but not clickable.
 
         // Times
         delay               : 2000,      // How long between slideshow transitions in AutoPlay mode (in milliseconds)
-        animationTime       : 400,       // How long the slideshow transition takes (in milliseconds)
+        animationTime       : 400       // How long the slideshow transition takes (in milliseconds)
     };
 
 }(jQuery));
