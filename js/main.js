@@ -1,107 +1,140 @@
 ;(function (window, $, undefined) {
     "use strict";
+
+    // 'var instance = this' is only needed when anonymous functions are used.
     
     $.jSlider = function(el, settings) {
+        
+        var settings = this.s = $.extend({}, $.jSlider.defaults, settings);
 
-        var base = el;
-        var settings = base.s = $.extend({}, defaults, settings);
+        // Cache DOM elements
+        this.$el      = $(el).addClass('sliderbase').wrap('<div class="sliderWrapper"><div class="sliderFrame" /></div>');
+        this.$wrapper = this.$el.parent().closest('div.sliderWrapper');
+        this.$frame   = this.$el.closest('div.sliderFrame');
 
+        this.slide       = this.$el.children('li');
+        this.slideLength = this.slide.length;
+        this.slideWidth  = this.slide[0].offsetWidth;
 
-        base.init = function() {
+        this.count = 0;
+        this.flag  = false;
 
-            // Cache DOM elements
-            base.$el      = $(el).addClass('sliderbase').wrap('<div class="sliderWrapper"><div class="sliderFrame" /></div>');
-            base.$wrapper = base.$el.parent().closest('div.sliderWrapper');
-            base.$frame   = base.$el.closest('div.sliderFrame');
+        if (this.s.autoPlay) { this.slideStart(); this.s.continuousScroll = true; }  // Checks if autoPlay is true, defauls continuousScroll to true
+        if (this.s.enableControls) this.controls() // Checks if enableControls is true
+        if (this.s.enableNavigation) this.navigation()  // Checks if enableNavigation is true
+    }
 
-            base.slide       = base.$el.children('li');
-            base.slideLength = base.slide.length;
-            base.slideWidth  = base.slide[0].offsetWidth;
-
-            base.count = 0;
-            base.flag  = false;
-
-            if (base.s.autoPlay) { base.slideStart(); base.s.continuousScroll = true; }  // Checks if autoPlay is true, defauls continuousScroll to true
-            if (base.s.enableControls) base.controls() // Checks if enableControls is true
-            if (base.s.enableNavigation) base.navigation()  // Checks if enableNavigation is true
-            
-        }
+    $.jSlider.prototype = {
 
         //ANIMATIONS
-        base.transition = function() {
+        transition: function() {
 
-            base.$el.animate({
-                'margin-left' : -( base.count * base.slideWidth )
-            }, base.s.animationTime);
-        }
+            this.$el.animate({
+                'margin-left' : -( this.count * this.slideWidth )
+            }, this.s.animationTime);
+        },
             
 
         // SLIDESHOW FUNCTIONS
-        base.slideStart = function() {
+        slideStart: function() {
+            
+            var instance = this;
 
-            base.go = setInterval(function() {
-                base.goForward();
-            }, base.s.delay );
-            base.paused = false;
-        }
+            this.go = setInterval(function() {
+                instance.goForward();   
+            }, this.s.delay );
+            this.paused = false;
+        },
 
-        base.slidePause = function() {
+        slidePause: function() {
 
-            if (!base.paused) {
-                clearInterval(base.go);
-                base.paused = true;
+            if (!this.paused) {
+                clearInterval(this.go);
+                this.paused = true;
             } else {
-                base.slideStart();
+                this.slideStart();
             }
-        }
+        },
 
-        base.resetTimer = function() {
+        resetTimer: function() {
 
-            clearInterval(base.go);
-            base.slideStart();
-        }
+            clearInterval(this.go);
+            this.slideStart();
+        },
 
         // NAVIGATON FUNCTIONS
-        base.goForward = function() {
+        goForward: function() {
+            
+            this.counter(1);
+            this.transition();
+        },
 
-            base.counter(1);
-            base.transition();
-        }
+        goBack: function() {
 
-        base.goBack = function() {
+            this.counter(-1);
+            this.transition();
+        },
 
-            base.counter(-1);
-            base.transition();
-        }
+        goToSlide: function(num) {
 
-        base.goToSlide = function( num ) {
+            this.count = num;
+            this.transition();
+        },
 
-            base.count = num;
-            base.transition();
-        }
+        counter: function(num) {
 
-        base.counter = function(num) {
-
-            var pos = base.count;
+            var pos = this.count;
             pos += num;
-            base.count = ( pos < 0 ) ? base.slideLength - 1 : pos % base.slideLength;
-        }
+            this.count = ( pos < 0 ) ? this.slideLength - 1 : pos % this.slideLength;
+        },
 
-        base.timeOut = function() {
+        timeOut: function() {
+            
+            var instance = this;
 
-            base.flag = true;
+            this.flag = true;
             setTimeout(function() {
-                base.flag = false;
+                instance.flag = false;
             }, 300);
         },
 
         // BUILDER FUNCTIONS
-        base.controls = function() {
+        bindings: function(cmd, index) {
+
+            if (!this.flag) {
+                this.timeOut();
+                switch (cmd) {
+                    case 'forward':
+                        this.goForward()
+                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.resetTimer()
+                        break;
+
+                    case 'back':
+                        this.goBack()
+                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.resetTimer()
+                        break;
+
+                    case 'pause':
+                        this.slidePause()
+                        break;
+
+                    case 'slide':
+                        this.goForward()
+                        this.goToSlide(index)
+                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.resetTimer()
+                        break;
+                }  
+            }
+        },
+
+        controls: function() {
+
+            var instance = this;
 
             var $controlsDiv = $('<div class="slider-controls"></div>');
-            $controlsDiv.appendTo(base.$wrapper);
+            $controlsDiv.appendTo(this.$wrapper);
 
-            var $controlsClass = $(base.$wrapper.find('.slider-controls'));
+            var $controlsClass = $(this.$wrapper.find('.slider-controls'));
             var $prevBtn = $('<button>Previous</button>');
             var $nextBtn = $('<button>Next</button>');
 
@@ -110,66 +143,39 @@
             $nextBtn.appendTo($controlsClass);
 
             // Bind click events
-            $prevBtn.on('click', function() {
-                if (!base.flag) {
-                    base.timeOut();
-                    base.goBack();
-                    if (base.s.continuousScroll && !base.s.autoPlayLocked) base.resetTimer()
-                } 
-            });
-
-            $nextBtn.on('click', function() {
-                if (!base.flag) {
-                    base.timeOut();
-                    base.goForward();
-                    if (base.s.continuousScroll && !base.s.autoPlayLocked) base.resetTimer()
-                }
-            });
+            $prevBtn.on( 'click', function() { instance.bindings('back') });
+            $nextBtn.on( 'click', function() { instance.bindings('forward') });
 
             // Pause button, easier the put all code here than make 3 different if statements
-            if (base.s.continuousScroll && base.s.enablePause) {
+            if (this.s.continuousScroll && this.s.enablePause) {
                 var $pauseBtn = $('<button>Pause</button>');
                 $pauseBtn.appendTo($controlsClass);
-                $pauseBtn.on('click', function() {
-                    if (!base.flag) {
-                        base.timeOut();
-                        base.slidePause();
-                    }
-                });
+                $pauseBtn.on( 'click', function() { instance.bindings('pause') });
             }
-        }
+        },
 
-        base.navigation = function() {
+        navigation: function() {
+
+            var instance = this;
 
             var $navDiv = $('<div class="slider-nav"></div>');
-            $navDiv.appendTo(base.$wrapper)
+            $navDiv.appendTo(this.$wrapper)
 
-            var $navClass = $(base.$wrapper.find('.slider-nav'));
+            var $navClass = $(this.$wrapper.find('.slider-nav'));
             var $navBtn = [];
 
             // Creates a button for each slide
-            for (var i = 0; i < base.slideLength; i++) {
+            for (var i = 0; i < this.slideLength; i++) {
                 $navBtn[i] = $('<button>Slide # ' + (i + 1) + '</button>');
                 $navBtn[i].appendTo($navClass);
             }
 
             // Binds click event to each button
             $.each($navBtn, function(index, val) {
-                $navBtn[index].on('click', function() {
-
-                    if (!base.flag) {
-                        base.timeOut();
-                        base.goToSlide(index);
-                        if (base.s.continuousScroll && !base.s.autoPlayLocked) base.resetTimer()
-                    }    
-                });
+                $navBtn[index].on( 'click', function() { instance.bindings('slide', index) });
             });
-        }
-
-        return base.init()
-    }
-
-
+        }  
+    };
     
     $.fn.mySlider = function(settings) {
 
@@ -182,7 +188,7 @@
         });
     }
 
-    var defaults = {
+    $.jSlider.defaults = {
 
         // Animation
         slide              : true,
