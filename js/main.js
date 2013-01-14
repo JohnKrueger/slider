@@ -1,9 +1,10 @@
-;(function($) {
-        
+;(function (window, $, undefined) {
+    "use strict";
+    
     $.jSlider = function(el, settings) {
 
         var base = el;
-        var settings = s = $.extend({}, defaults, settings);
+        var settings = base.s = $.extend({}, defaults, settings);
 
 
         base.init = function() {
@@ -20,10 +21,10 @@
             base.count = 0;
             base.flag  = false;
 
-            if (s.enableControls) { base.controls() }// Checks if enableControls is true
-            if (s.enableNavigation) { base.navigation() } // Checks if enableNavigation is true
-            if (s.autoPlay) { base.slideStart(); s.continuousScroll = true; } // Checks if autoPlay is true, defauls continuousScroll to true
-            if (!s.continuousScroll) {  }
+            if (base.s.autoPlay) { base.slideStart(); base.s.continuousScroll = true; }  // Checks if autoPlay is true, defauls continuousScroll to true
+            if (base.s.enableControls) base.controls() // Checks if enableControls is true
+            if (base.s.enableNavigation) base.navigation()  // Checks if enableNavigation is true
+            
         }
 
         //ANIMATIONS
@@ -31,7 +32,7 @@
 
             base.$el.animate({
                 'margin-left' : -( base.count * base.slideWidth )
-            }, s.animationTime);
+            }, base.s.animationTime);
         }
             
 
@@ -40,13 +41,13 @@
 
             base.go = setInterval(function() {
                 base.goForward();
-            }, s.delay );
+            }, base.s.delay );
             base.paused = false;
         }
 
         base.slidePause = function() {
 
-            if (base.paused === false) {
+            if (!base.paused) {
                 clearInterval(base.go);
                 base.paused = true;
             } else {
@@ -73,7 +74,7 @@
             base.transition();
         }
 
-        base.goToPage = function( num ) {
+        base.goToSlide = function( num ) {
 
             base.count = num;
             base.transition();
@@ -113,7 +114,7 @@
                 if (!base.flag) {
                     base.timeOut();
                     base.goBack();
-                    if (s.continuousScroll && !s.autoPlayLocked) base.resetTimer()
+                    if (base.s.continuousScroll && !base.s.autoPlayLocked) base.resetTimer()
                 } 
             });
 
@@ -121,12 +122,12 @@
                 if (!base.flag) {
                     base.timeOut();
                     base.goForward();
-                    if (s.continuousScroll && !s.autoPlayLocked) base.resetTimer()
+                    if (base.s.continuousScroll && !base.s.autoPlayLocked) base.resetTimer()
                 }
             });
 
             // Pause button, easier the put all code here than make 3 different if statements
-            if (s.enablePause === true) {
+            if (base.s.continuousScroll && base.s.enablePause) {
                 var $pauseBtn = $('<button>Pause</button>');
                 $pauseBtn.appendTo($controlsClass);
                 $pauseBtn.on('click', function() {
@@ -158,8 +159,8 @@
 
                     if (!base.flag) {
                         base.timeOut();
-                        base.goToPage(index);
-                        if (s.continuousScroll && !s.autoPlayLocked) base.resetTimer()
+                        base.goToSlide(index);
+                        if (base.s.continuousScroll && !base.s.autoPlayLocked) base.resetTimer()
                     }    
                 });
             });
@@ -202,4 +203,4 @@
         animationTime       : 400       // How long the slideshow transition takes (in milliseconds)
     };
 
-}(jQuery));
+})(window, jQuery);
