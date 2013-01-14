@@ -2,132 +2,129 @@
     "use strict";
 
     // 'var instance = this' is only needed when anonymous functions are used.
-    
+    // Variable names that contain '$' probably have a jQuery selector in them.
+    var radioBtnCount = 0; // Used for radio button names, so they don't clash.
+
     $.jSlider = function(el, settings) {
         
         var settings = this.s = $.extend({}, $.jSlider.defaults, settings);
 
         // Cache DOM elements
-        this.$el      = $(el).addClass('sliderbase').wrap('<div class="sliderWrapper"><div class="sliderFrame" /></div>');
-        this.$wrapper = this.$el.parent().closest('div.sliderWrapper');
-        this.$frame   = this.$el.closest('div.sliderFrame');
+        this.$window    = $(window);
+        this.base       = el;
+        this.$base      = $(el).addClass('sliderbase').wrap('<div class="sliderWrapper"></div>');
+        this.$wrapper   = this.$base.parent().closest('div.sliderWrapper');
+        this.$slide     = this.$base.children('li');
+        this.slideCount = this.$slide.length;
+        this.slideWidth = 100 / this.slideCount;
 
-        this.slide       = this.$el.children('li');
-        this.slideLength = this.slide.length;
-        this.slideWidth  = this.slide[0].offsetWidth;
+        this.$base.css({ 'width' : this.slideCount * 100 + '%'});
+        this.$slide.css({ 'width' : this.slideWidth + '%' });
 
         this.count = 0;
         this.flag  = false;
 
-        if (this.s.autoPlay) { this.slideStart(); this.s.continuousScroll = true; }  // Checks if autoPlay is true, defauls continuousScroll to true
-        if (this.s.enableControls) this.controls() // Checks if enableControls is true
-        if (this.s.enableNavigation) this.navigation()  // Checks if enableNavigation is true
+        if (this.s.autoPlay) { this.controlSlide('start'); this.s.continuousScroll = true; }  // Checks if autoPlay is true, defauls continuousScroll to true
+        if (this.s.enableControls) this.buildControls() // Checks if enableControls is true
+        if (this.s.enableRadioBtns) this.buildRadioBtns()  // Checks if enableNavigation is true
+        if (this.s.enableTimer) this.buildTimer()  // Checks if enableTimer is true
+
+        radioBtnCount++;
     }
 
     $.jSlider.prototype = {
 
-        //ANIMATIONS
         transition: function() {
 
-            this.$el.animate({
-                'margin-left' : -( this.count * this.slideWidth )
+            this.$base.animate({
+                'margin-left' : -( this.count * this.slideWidth * this.slideCount ) +'%'
             }, this.s.animationTime);
-        },
-            
-
-        // SLIDESHOW FUNCTIONS
-        slideStart: function() {
-            
-            var instance = this;
-
-            this.go = setInterval(function() {
-                instance.goForward();   
-            }, this.s.delay );
-            this.paused = false;
-        },
-
-        slidePause: function() {
-
-            if (!this.paused) {
-                clearInterval(this.go);
-                this.paused = true;
-            } else {
-                this.slideStart();
-            }
-        },
-
-        resetTimer: function() {
-
-            clearInterval(this.go);
-            this.slideStart();
-        },
-
-        // NAVIGATON FUNCTIONS
-        goForward: function() {
-            
-            this.counter(1);
-            this.transition();
-        },
-
-        goBack: function() {
-
-            this.counter(-1);
-            this.transition();
-        },
-
-        goToSlide: function(num) {
-
-            this.count = num;
-            this.transition();
         },
 
         counter: function(num) {
 
             var pos = this.count;
             pos += num;
-            this.count = ( pos < 0 ) ? this.slideLength - 1 : pos % this.slideLength;
+            this.count = ( pos < 0 ) ? this.slideCount - 1 : pos % this.slideCount;
         },
-
-        timeOut: function() {
             
+        controlSlide: function(cmd) {
+
             var instance = this;
 
-            this.flag = true;
-            setTimeout(function() {
-                instance.flag = false;
-            }, 300);
+            switch (cmd) {
+                case 'start':
+                    this.go = setInterval(function() {
+                        instance.changeSlide('forward');
+                    }, this.s.delay);
+                    this.paused = false;
+                    break;
+                case 'pause':
+                    if (!this.paused) {
+                        clearInterval(this.go);
+                        this.paused = true;
+                    } else {
+                        this.controlSlide('start');
+                    }
+                    break;
+                case 'reset': // Resets timer not slide itself
+                    clearInterval(this.go);
+                    this.controlSlide('start');
+                    break;
+            }
         },
 
-        // BUILDER FUNCTIONS
-        bindings: function(cmd, index) {
+        changeSlide: function(dir, num) {
+
+            switch (dir) {
+                case 'forward':
+                    this.counter(1)
+                    if (this.s.enableRadioBtns) this.$radioBtn[this.count].attr('checked', 'checked')
+                    break;
+                case 'back':
+                    this.counter(-1)
+                    if (this.s.enableRadioBtns) this.$radioBtn[this.count].attr('checked', 'checked')
+                    break;
+                case 'jump':
+                    this.count = num
+                    break;
+            }
+            this.transition();
+        },
+
+        bindings: function(dir, index) {
+
+            var instance = this;
 
             if (!this.flag) {
-                this.timeOut();
-                switch (cmd) {
+
+                // Prevents click spam
+                this.flag = true;
+                setTimeout(function() {
+                    instance.flag = false;
+                }, 300);
+
+                switch (dir) {
                     case 'forward':
-                        this.goForward()
-                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.resetTimer()
+                        this.changeSlide(dir)
+                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.controlSlide('reset')
                         break;
-
                     case 'back':
-                        this.goBack()
-                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.resetTimer()
+                        this.changeSlide(dir)
+                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.controlSlide('reset')
                         break;
-
+                    case 'jump': 
+                        this.changeSlide(dir, index)
+                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.controlSlide('reset')
+                        break;
                     case 'pause':
-                        this.slidePause()
-                        break;
-
-                    case 'slide':
-                        this.goForward()
-                        this.goToSlide(index)
-                        if (this.s.continuousScroll && !this.s.autoPlayLocked) this.resetTimer()
+                        this.controlSlide('pause')
                         break;
                 }  
             }
         },
 
-        controls: function() {
+        buildControls: function() {
 
             var instance = this;
 
@@ -154,33 +151,39 @@
             }
         },
 
-        navigation: function() {
+        buildRadioBtns: function() {
 
             var instance = this;
 
-            var $navDiv = $('<div class="slider-nav"></div>');
-            $navDiv.appendTo(this.$wrapper)
+            var $radioDiv = $('<div class="slider-radio"></div>');
+            $radioDiv.appendTo(this.$wrapper)
 
-            var $navClass = $(this.$wrapper.find('.slider-nav'));
-            var $navBtn = [];
+            var $radioClass = $(this.$wrapper.find('.slider-radio'));
+            this.$radioBtn = [];
 
-            // Creates a button for each slide
-            for (var i = 0; i < this.slideLength; i++) {
-                $navBtn[i] = $('<button>Slide # ' + (i + 1) + '</button>');
-                $navBtn[i].appendTo($navClass);
+            for (var i = 0; i < this.slideCount; i++) {
+                this.$radioBtn[i] = $("<input type='radio' name='radioBtn" + radioBtnCount + "' />");
+                this.$radioBtn[i].appendTo($radioClass);
             }
 
+            this.$radioBtn[0].attr('checked', 'checked')
+
             // Binds click event to each button
-            $.each($navBtn, function(index, val) {
-                $navBtn[index].on( 'click', function() { instance.bindings('slide', index) });
+            $.each(this.$radioBtn, function(index, val) {
+                instance.$radioBtn[index].on( 'click', function() { instance.bindings('jump', index) });
             });
+        },
+
+        buildTimer: function() {
+
+            var instance = this;
         }  
     };
     
     $.fn.mySlider = function(settings) {
-
+        
         return this.each(function() {
-          
+
             var $this = $(this),
                 data  = $this.data("mySlider");
 
@@ -190,9 +193,11 @@
 
     $.jSlider.defaults = {
 
-        // Animation
-        slide              : true,
-        fade               : false,
+        // TODO
+        // Swipe
+        // Captions
+        // Timer icon
+        // Pro CSS YO!
 
         // Autoplay
         autoPlay            : true,     // If true, the slideshow will start on its own, it will also make continuousScroll = true.
@@ -202,7 +207,8 @@
          // Controls
         enableControls      : true,         // If true, builds the control buttons (prev, next, pause).  
         enablePause         : true,         // If true, pause btn will be turned on, does nothing if controls = false.
-        enableNavigation    : true,      // if false, navigation links will still be visible, but not clickable.
+        enableRadioBtns     : true,      // if false, navigation links will still be visible, but not clickable.
+        enableTimer         : true,
 
         // Times
         delay               : 2000,      // How long between slideshow transitions in AutoPlay mode (in milliseconds)

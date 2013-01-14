@@ -7,7 +7,8 @@ body {
 
 .wrap {
   margin: 100px auto 0;
-  width: 600px;
+  padding: 15px;
+  max-width: 600px;
 }
 
 .sliderWrapper button {
@@ -17,24 +18,29 @@ body {
 }
 
 .sliderWrapper {
-  width: inherit;
+  position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .sliderBase {
-  width: 10000px;
-  list-style: none;
+  position: relative;
 }
 
 .sliderBase > li {
   float: left;
-  width: 600px;
-  height: 300px;
+  display: block;
   background-color: #bbb;
 }
 
 .sliderBase > li > div {
-  padding: 15px;
+  width: 100%;
+  display: block;
+}
+.sliderBase > li > img {
+  width: 100%;
 }
 
 .sliderBase li:nth-child(odd) { background-color: #aaa;}
+
+.slider-controls { clear: both; }
