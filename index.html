@@ -24,7 +24,14 @@
                     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris aliquam pellentesque vehicula. Maecenas urna odio, interdum quis facilisis in, facilisis eu est. Mauris tempor, lacus sit amet commodo hendrerit, felis orci interdum lorem, auctor laoreet neque sem ac tellus. Sed metus quam, lobortis non facilisis eu, gravida nec libero. Donec sed orci ac nibh semper lacinia. Suspendisse potenti. Etiam sed risus id sapien consectetur malesuada.</p>
                 </div>
             </li>
-        </ul> 
+        </ul>
+
+        <ul id="find">
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+        </ul>
 
     </div><!-- .wrap -->
 <script type="text/javascript" src="js/jQuery-1.8.3.js"></script>
@@ -33,6 +40,7 @@
 
     $(function() {
         $('[data-plugin="slider"]').mySlider();
+        $('#find').mySlider({ autoPlay : false });
     });
 
 </script>
