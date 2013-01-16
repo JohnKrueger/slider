@@ -23,6 +23,7 @@
 
         this.count = 0;
         this.flag  = false;
+        this.start = false;
 
         if (this.s.autoPlay) { this.controlSlide('start'); this.s.continuousScroll = true; }  // Checks if autoPlay is true, defauls continuousScroll to true
         if (this.s.enableControls) this.buildControls() // Checks if enableControls is true
@@ -197,7 +198,6 @@
         // Swipe
         // Captions
         // Timer icon
-        // Pro CSS YO!
 
         // Autoplay
         autoPlay            : true,     // If true, the slideshow will start on its own, it will also make continuousScroll = true.
@@ -211,8 +211,8 @@
         enableTimer         : true,
 
         // Times
-        delay               : 2000,      // How long between slideshow transitions in AutoPlay mode (in milliseconds)
-        animationTime       : 400       // How long the slideshow transition takes (in milliseconds)
+        delay               : 3500,      // How long between slideshow transitions in AutoPlay mode (in milliseconds)
+        animationTime       : 800       // How long the slideshow transition takes (in milliseconds)
     };
 
 })(window, jQuery);

@@ -35,6 +35,7 @@ body {
 
 .sliderBase > li > div {
   width: 100%;
+  height: 300px;
   display: block;
 }
 .sliderBase > li > img {
@@ -43,4 +44,15 @@ body {
 
 .sliderBase li:nth-child(odd) { background-color: #aaa;}
 
-.slider-controls { clear: both; }
+.slider-controls {
+  position: relative;
+  float: left;
+  clear: both;
+}
+
+.slider-radio {
+  position: absolute;
+  float: right;
+  right:  15;
+  top: 15;
+}
